@@ -49,7 +49,7 @@ class YAMLImporter
      *
      * @return array
      */
-    public function getNodeTypeDefinitionTemplates($yaml)
+    public function getNodeTypeTemplates($yaml)
     {
         $data = Yaml::parse($yaml);
 
@@ -72,11 +72,36 @@ class YAMLImporter
      *
      * @return NodeTypeTemplateInterface
      */
-    public function createNodeTypeTemplate($name, $nodeType)
+    public function createNodeTypeTemplate($nodeTypeName, $nodeType)
     {
+        // record all the valid keys for validation
+        $validKeys = new \ArrayObject(array(
+            'nodeType' => array(
+                'namespace' => true,
+                'children' => true,
+                'properties' => true,
+            ),
+            'property' => array(
+                'namespace' => true,
+            ),
+            'child' => array(
+                'namespace' => true
+            ),
+        ));
+
+        $nodeType = array_merge(array(
+            'properties' => array(),
+            'children' => array(),
+        ), $nodeType);
+
         // create closure function to apply the given callback only
         // if the given $name existis in $data
-        $sub = function ($data, $t, $name, $callback) {
+        $sub = function ($type, $data, $t, $name, $callback) use ($validKeys) {
+
+            // store valid keys for this type
+            $validKeys[$type][$name] = $name;
+
+            // only set the property if it is present
             if (isset($data[$name])) {
                 $v = $data[$name];
                 $callback($t, $v);
@@ -85,14 +110,14 @@ class YAMLImporter
 
         // set the nodes namespace, if defined
         if (isset($nodeType['namespace'])) {
-            $name = $nodeType['namespace'] . ':' . $name;
+            $nodeTypeName = $nodeType['namespace'] . ':' . $nodeTypeName;
         }
 
         $ntTemplate = $this->getNodeTypeManager()->createNodeTypeTemplate();
-        $ntTemplate->setName($name);
+        $ntTemplate->setName($nodeTypeName);
 
         $s = function ($name, $callback) use ($sub, $nodeType, $ntTemplate) { 
-            $sub($nodeType, $ntTemplate, $name, $callback);
+            $sub('nodeType', $nodeType, $ntTemplate, $name, $callback);
         };
 
         $s('abstract',                  function ($t, $v) { $t->setAbstract($v); });
@@ -113,7 +138,7 @@ class YAMLImporter
                 $t->setName($name);
 
                 $s = function ($name, $callback) use ($sub, $child, $t) { 
-                    $sub($child, $t, $name, $callback);
+                    $sub('child', $child, $t, $name, $callback);
                 };
 
                 $s('auto_created',                function ($t, $v) { $t->setAutoCreated((boolean) $v); });
@@ -141,7 +166,7 @@ class YAMLImporter
                 $t->setName($name);
 
                 $s = function ($name, $callback) use ($sub, $property, $t) { 
-                    $sub($property, $t, $name, $callback);
+                    $sub('property', $property, $t, $name, $callback);
                 };
 
                 $s('auto_created',              function ($t, $v) { $t->setAutoCreated((boolean) $v); });
@@ -169,6 +194,40 @@ class YAMLImporter
                 $s('query_orderable',           function ($t, $v) { $t->setQueryOrderable((boolean) $v); });
 
                 $ntTemplate->getPropertyDefinitionTemplates()->append($t);
+            }
+        }
+
+        // check for invalid keys
+        foreach (array_keys($nodeType) as $key) {
+            if (false === array_key_exists($key, $validKeys['nodeType'])) {
+                throw new \InvalidArgumentException(sprintf(
+                    'Invalid node type key "%s" for node-type "%s"',
+                    $key, $nodeTypeName
+                ));
+            }
+        }
+
+        // check for invalid property keys
+        foreach ($nodeType['properties'] as $property) {
+            foreach (array_keys($property) as $key) {
+                if (false === array_key_exists($key, $validKeys['property'])) {
+                    throw new \InvalidArgumentException(sprintf(
+                        'Invalid property key "%s" for node-type "%s"',
+                        $key, $nodeTypeName
+                    ));
+                }
+            }
+        }
+
+        // check for invalid child keys
+        foreach ($nodeType['children'] as $child) {
+            foreach (array_keys($child) as $key) {
+                if (false === array_key_exists($key, $validKeys['child'])) {
+                    throw new \InvalidArgumentException(sprintf(
+                        'Invalid child key "%s" for node-type "%s"',
+                        $key, $nodeTypeName
+                    ));
+                }
             }
         }
 

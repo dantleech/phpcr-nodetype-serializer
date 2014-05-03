@@ -32,12 +32,6 @@ class YAMLImporterTest extends BaseTestCase
         $this->session->getWorkspace()->willReturn($this->workspace);
         $this->workspace->getNamespaceRegistry()->willReturn($this->nsRegistry);
         $this->workspace->getNodeTypeManager()->willReturn($this->ntManager);
-    }
-
-    public function testImporter()
-    {
-        $this->nsRegistry->registerNamespace('test', 'http://www.example.com/test')->shouldBeCalled();
-        $this->nsRegistry->registerNamespace('boo', 'http://www.example.com/boo')->shouldBeCalled();
 
         // setup
         $this->ntManager->createNodeTypeTemplate()->willReturn($this->ntTemplate);
@@ -45,6 +39,12 @@ class YAMLImporterTest extends BaseTestCase
         $this->ntManager->createPropertyDefinitionTemplate()->willReturn($this->pdTemplate);
         $this->ntTemplate->getNodeDefinitionTemplates()->willReturn($this->ndTemplates);
         $this->ntTemplate->getPropertyDefinitionTemplates()->willReturn($this->pdTemplates);
+    }
+
+    public function testImporter()
+    {
+        $this->nsRegistry->registerNamespace('test', 'http://www.example.com/test')->shouldBeCalled();
+        $this->nsRegistry->registerNamespace('boo', 'http://www.example.com/boo')->shouldBeCalled();
 
         // node type defininition assertions
         $assertions = array(
@@ -102,6 +102,15 @@ class YAMLImporterTest extends BaseTestCase
             $this->pdTemplate->$methodName($expectedValue)->shouldBeCalled();
         }
 
-        $this->parser->getNodeTypeDefinitionTemplates(file_get_contents(__DIR__ . '/../../../../../../fixtures/nodetype1.yml'));
+        $this->parser->getNodeTypeTemplates(file_get_contents(__DIR__ . '/../../../../../../fixtures/nodetype1.yml'));
+    }
+
+    /**
+     * @expectedException \InvalidArgumentException
+     */
+    public function testInvalidKeys()
+    {
+        $this->ntTemplate->setName('article')->shouldBeCalled();
+        $this->parser->getNodeTypeTemplates(file_get_contents(__DIR__ . '/../../../../../../fixtures/nodetype2.yml'));
     }
 }

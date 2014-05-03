@@ -1,0 +1,7 @@
+namespaces:
+    test: http://www.example.com/test
+    boo: http://www.example.com/boo
+
+node_types:
+    article:
+        invalidkey: fabar
