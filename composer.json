@@ -1,0 +1,23 @@
+{
+    "name": "phpcr/phpcr-nt-yaml",
+    "description": "PHPCR YAML Node Type reader and dumper",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Daniel Leech",
+            "email": "daniel@dantleech.com"
+        }
+    ],
+    "autoload": {
+        "psr-0": { 
+            "PHPCR\\Util\\NodeType\\Reader\\YAML": "lib",
+            "PHPCR\\Util\\Tests\\NodeType\\Reader\\YAML": "tests"
+        }
+    },
+    "require": {
+        "phpcr/phpcr": "dev-master"
+    },
+    "require-dev": {
+        "phpspec/prophecy": "1.1.2"
+    }
+}
