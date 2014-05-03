@@ -2,14 +2,14 @@ namespaces:
     test: http://www.example.com/test
     boo: http://www.example.com/boo
 
+barbar:
+
 node_types:
     article:
         invalid1: one
         invalid2: two
         properties:
-            barbar:
-                invalid3: bar
+            invalid3: bar
         children:
-            barfoo:
-                invalid4: foo
+            invalid4: foo
 

@@ -4,6 +4,7 @@ namespace PHPCR\Util\NodeType\Importer\YAML;
 
 use Symfony\Component\Yaml\Yaml;
 use PHPCR\SessionInterface;
+use PHPCR\Util\NodeType\Importer\Exception\InvalidConfigurationException;
 
 /**
  * Translate a YAML file into node type definitions.
@@ -15,6 +16,7 @@ use PHPCR\SessionInterface;
 class YAMLImporter
 {
     protected $session;
+    protected $errors;
 
     /**
      * @param SessionInterface $session
@@ -53,6 +55,15 @@ class YAMLImporter
     {
         $data = Yaml::parse($yaml);
 
+        foreach (array_keys($data) as $key) {
+            if (!in_array($key, array('namespaces', 'node_types'))) {
+                $this->errors[] = sprintf(
+                    'Key "%s" is not known, should be one of "namespace" or "node-types"',
+                    $key
+                );
+            }
+        }
+
         if (isset($data['namespaces'])) {
             foreach ($data['namespaces'] as $prefix => $url) {
                 $this->getNamespaceRegistry()->registerNamespace($prefix, $url);
@@ -62,6 +73,14 @@ class YAMLImporter
         foreach ($data['node_types'] as $name => $nodeType) {
             $this->createNodeTypeTemplate($name, $nodeType);
         }
+
+        if (count($this->errors) > 0) {
+            throw new InvalidConfigurationException(sprintf(
+                "Invalid configuration file: \n\n - %s",
+                implode("\n - ", $this->errors)
+            ));
+        }
+
     }
 
     /**
@@ -129,6 +148,7 @@ class YAMLImporter
 
         // create and populate child node definitions
         if (isset($nodeType['children'])) {
+            $this->assertArray($nodeType['children']);
             foreach ($nodeType['children'] as $name => $child) {
                 if (isset($nodeType['namespace'])) {
                     $name = $nodeType['namespace'] . ':' . $name;
@@ -157,6 +177,8 @@ class YAMLImporter
 
         // create and populate property definitions
         if (isset($nodeType['properties'])) {
+            $this->assertArray($nodeType['properties']);
+
             foreach ($nodeType['properties'] as $name => $property) {
                 if (isset($nodeType['namespace'])) {
                     $name = $nodeType['namespace'] . ':' . $name;
@@ -197,40 +219,53 @@ class YAMLImporter
             }
         }
 
+        $errors = array();
+
         // check for invalid keys
         foreach (array_keys($nodeType) as $key) {
             if (false === array_key_exists($key, $validKeys['nodeType'])) {
-                throw new \InvalidArgumentException(sprintf(
-                    'Invalid node type key "%s" for node-type "%s"',
+                $this->errors[] = sprintf(
+                    'Key "%s" for node-type "%s" is invalid',
                     $key, $nodeTypeName
-                ));
+                );
             }
         }
 
         // check for invalid property keys
         foreach ($nodeType['properties'] as $property) {
+            $this->assertArray($property);
             foreach (array_keys($property) as $key) {
                 if (false === array_key_exists($key, $validKeys['property'])) {
-                    throw new \InvalidArgumentException(sprintf(
-                        'Invalid property key "%s" for node-type "%s"',
+                    $this->errors[] = sprintf(
+                        'Key "%s" for property definition node-type "%s" is invalid',
                         $key, $nodeTypeName
-                    ));
+                    );
                 }
             }
         }
 
         // check for invalid child keys
         foreach ($nodeType['children'] as $child) {
+            $this->assertArray($child);
             foreach (array_keys($child) as $key) {
                 if (false === array_key_exists($key, $validKeys['child'])) {
-                    throw new \InvalidArgumentException(sprintf(
-                        'Invalid child key "%s" for node-type "%s"',
+                    $this->errors[] = sprintf(
+                        'Key "%s" for child defintion of node-type "%s" is invalid',
                         $key, $nodeTypeName
-                    ));
+                    );
                 }
             }
         }
 
         return $ntTemplate;
+    }
+
+    private function assertArray($array)
+    {
+        if (!is_array($array)) {
+            throw new InvalidConfigurationException(sprintf(
+                '%s must be an array', var_export($array, true)
+            ));
+        }
     }
 }

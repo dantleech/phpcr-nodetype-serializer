@@ -105,12 +105,28 @@ class YAMLImporterTest extends BaseTestCase
         $this->parser->getNodeTypeTemplates(file_get_contents(__DIR__ . '/../../../../../../fixtures/nodetype1.yml'));
     }
 
-    /**
-     * @expectedException \InvalidArgumentException
-     */
-    public function testInvalidKeys()
+    public function testInvalidKeys1()
     {
+        $this->setExpectedException('PHPCR\Util\NodeType\Importer\Exception\InvalidConfigurationException', <<<EOT
+ - Key "invalid1" for node-type "article" is invalid
+ - Key "invalid2" for node-type "article" is invalid
+ - Key "invalid3" for property definition node-type "article" is invalid
+ - Key "invalid4" for child defintion of node-type "article" is invalid
+EOT
+        );
+
         $this->ntTemplate->setName('article')->shouldBeCalled();
         $this->parser->getNodeTypeTemplates(file_get_contents(__DIR__ . '/../../../../../../fixtures/nodetype2.yml'));
+    }
+
+    public function testInvalidKeys2()
+    {
+        $this->setExpectedException('PHPCR\Util\NodeType\Importer\Exception\InvalidConfigurationException', <<<EOT
+'bar' must be an array
+EOT
+        );
+
+        $this->ntTemplate->setName('article')->shouldBeCalled();
+        $this->parser->getNodeTypeTemplates(file_get_contents(__DIR__ . '/../../../../../../fixtures/nodetype3.yml'));
     }
 }
