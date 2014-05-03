@@ -1,13 +1,13 @@
 <?php
 
-namespace PHPCR\Util\Tests\NodeType\Reader\YAML;
+namespace PHPCR\Util\Tests\NodeType\Importer\YAML;
 
 use PHPCR\SimpleCredentials;
 use PHPCR\NodeType\NodeDefinitionTemplateInterface;
 use PHPCR\Version\OnParentVersionAction;
-use PHPCR\Util\NodeType\Reader\YAML\YAMLReader;
+use PHPCR\Util\NodeType\Importer\YAML\YAMLImporter;
 
-class ReaderTest extends BaseTestCase
+class YAMLImporterTest extends BaseTestCase
 {
     protected $session;
     protected $workspace;
@@ -27,14 +27,14 @@ class ReaderTest extends BaseTestCase
         $this->ndTemplates = new \ArrayObject();
         $this->pdTemplates = new \ArrayObject();
 
-        $this->parser = new YAMLReader($this->session->reveal());
+        $this->parser = new YAMLImporter($this->session->reveal());
 
         $this->session->getWorkspace()->willReturn($this->workspace);
         $this->workspace->getNamespaceRegistry()->willReturn($this->nsRegistry);
         $this->workspace->getNodeTypeManager()->willReturn($this->ntManager);
     }
 
-    public function testReader()
+    public function testImporter()
     {
         $this->nsRegistry->registerNamespace('test', 'http://www.example.com/test')->shouldBeCalled();
         $this->nsRegistry->registerNamespace('boo', 'http://www.example.com/boo')->shouldBeCalled();
@@ -46,10 +46,23 @@ class ReaderTest extends BaseTestCase
         $this->ntTemplate->getNodeDefinitionTemplates()->willReturn($this->ndTemplates);
         $this->ntTemplate->getPropertyDefinitionTemplates()->willReturn($this->pdTemplates);
 
+        // node type defininition assertions
+        $assertions = array(
+            'setName' => 'test:article',
+            'setAbstract' => true,
+            'setMixin' => false,
+            'setOrderableChildNodes' => true,
+            'setQueryable' => true,
+            'setPrimaryItemName' => 'comment',
+        );
+
+        foreach ($assertions as $methodName => $expectedValue) {
+            $this->ntTemplate->$methodName($expectedValue)->shouldBeCalled();
+        }
 
         // node definition assertions
         $assertions = array(
-            'setName' => 'test:article',
+            'setName' => 'test:comment',
             'setAutoCreated' => true,
             'setMandatory' => true,
             'setOnParentVersion' => OnParentVersionAction::COPY,

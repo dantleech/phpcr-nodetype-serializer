@@ -4,22 +4,12 @@ namespaces:
 
 node_types:
     article:
+        namespace: test
         abstract: true
         mixin: false
         orderable_child_nodes: true
         primary_item_name: comment
         queryable: true
-        definition:
-            namespace: test
-            mandatory: true
-            on_parent_version: COPY
-            protected: false
-            required_primary_types:
-                - nt:unstructured
-                - nt:base
-            default_primary_type: nt:unstructured
-            same_name_siblings: true
-            auto_created: true
         children:
             comment:
                 namespace: test

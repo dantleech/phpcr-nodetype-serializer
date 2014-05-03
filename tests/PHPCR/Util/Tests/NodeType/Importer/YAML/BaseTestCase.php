@@ -1,6 +1,6 @@
 <?php
 
-namespace PHPCR\Util\Tests\NodeType\Reader\YAML;
+namespace PHPCR\Util\Tests\NodeType\Importer\YAML;
 
 use Prophecy\Prophet;
 

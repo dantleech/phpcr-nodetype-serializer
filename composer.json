@@ -10,8 +10,8 @@
     ],
     "autoload": {
         "psr-0": { 
-            "PHPCR\\Util\\NodeType\\Reader\\YAML": "lib",
-            "PHPCR\\Util\\Tests\\NodeType\\Reader\\YAML": "tests"
+            "PHPCR\\Util\\NodeType\\Importer\\YAML": "lib",
+            "PHPCR\\Util\\Tests\\NodeType\\Importer\\YAML": "tests"
         }
     },
     "require": {
