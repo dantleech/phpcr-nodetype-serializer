@@ -108,25 +108,26 @@ class YAMLImporterTest extends BaseTestCase
     public function testInvalidKeys1()
     {
         $this->setExpectedException('PHPCR\Util\NodeType\Importer\Exception\InvalidConfigurationException', <<<EOT
- - Key "invalid1" for node-type "article" is invalid
- - Key "invalid2" for node-type "article" is invalid
- - Key "invalid3" for property definition node-type "article" is invalid
- - Key "invalid4" for child defintion of node-type "article" is invalid
+- Unknown key "invalid1", must be one of "namespace, children, auto_created, properties, abstract, mixin, orderable_child_nodes, primary_item_name, queryable, declared_super_type_names"
+ - Unknown key "invalid2", must be one of "namespace, children, auto_created, properties, abstract, mixin, orderable_child_nodes, primary_item_name, queryable, declared_super_type_names"
+ - Unknown key "invalid4", must be one of "namespace, auto_created, mandatory, protected, default_primary_type, same_name_siblings, on_parent_version, required_primary_types"
+ - Unknown key "invalid3", must be one of "auto_created, namespace, mandatory, multiple, protected, default_value, full_text_searchable, query_orderable, required_type, value_constraints, available_query_operators, on_parent_version
 EOT
         );
 
-        $this->ntTemplate->setName('article')->shouldBeCalled();
         $this->parser->getNodeTypeTemplates(file_get_contents(__DIR__ . '/../../../../../../fixtures/nodetype2.yml'));
     }
 
     public function testInvalidKeys2()
     {
         $this->setExpectedException('PHPCR\Util\NodeType\Importer\Exception\InvalidConfigurationException', <<<EOT
-'bar' must be an array
+ - Unknown key "barbar", must be one of "namespaces, node_types"
+ - Unknown key "invalid1", must be one of "namespace, children, auto_created, properties, abstract, mixin, orderable_child_nodes, primary_item_name, queryable, declared_super_type_names"
+ - Unknown key "invalid2", must be one of "namespace, children, auto_created, properties, abstract, mixin, orderable_child_nodes, primary_item_name, queryable, declared_super_type_names"
+ - Unknown key "0", must be one of "namespace, auto_created, mandatory, protected, default_primary_type, same_name_siblings, on_parent_version, required_primary_types"
+ - Unknown key "0", must be one of "auto_created, namespace, mandatory, multiple, protected, default_value, full_text_searchable, query_orderable, required_type, value_constraints, available_query_operators, on_parent_version"
 EOT
         );
-
-        $this->ntTemplate->setName('article')->shouldBeCalled();
         $this->parser->getNodeTypeTemplates(file_get_contents(__DIR__ . '/../../../../../../fixtures/nodetype3.yml'));
     }
 }
