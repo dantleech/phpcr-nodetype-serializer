@@ -4,6 +4,8 @@ namespace PHPCR\Util\NodeType\Serializer;
 
 use PHPCR\PropertyType;
 use Symfony\Component\Yaml\Dumper;
+use PHPCR\NodeType\NodeTypeInterface;
+use Symfony\Component\Yaml\Yaml;
 
 /**
  * PHPCR node type YAML serializer
@@ -19,7 +21,7 @@ class YAMLSerializer
      *
      * @return string
      */
-    public function export(NodeTypeInterface $nt)
+    public function serialize(NodeTypeInterface $nt)
     {
         $out = array(
             'name' => $nt->getName(),
@@ -58,7 +60,7 @@ class YAMLSerializer
             $out['children'][] = $child;
         }
 
-        return Dumper::dump($out);
+        return Yaml::dump($out, 10);
     }
 
     private function getItemDefinitionArray(ItemDefinitionInterface $id)
