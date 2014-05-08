@@ -10,9 +10,8 @@
     ],
     "autoload": {
         "psr-0": { 
-            "PHPCR\\Util\\NodeType\\Importer\\Exception": "lib",
-            "PHPCR\\Util\\NodeType\\Importer\\YAML": "lib",
-            "PHPCR\\Util\\Tests\\NodeType\\Importer\\YAML": "tests"
+            "PHPCR\\Util\\NodeType\\Serializer": "lib",
+            "PHPCR\\Util\\Tests\\NodeType\\Serializer": "tests"
         }
     },
     "require": {

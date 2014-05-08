@@ -1,6 +1,6 @@
 <?php
 
-namespace PHPCR\Util\Tests\NodeType\Importer\YAML;
+namespace PHPCR\Util\Tests\NodeType\Serializer;
 
 use Prophecy\Prophet;
 

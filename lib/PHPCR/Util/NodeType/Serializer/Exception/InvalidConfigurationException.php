@@ -1,6 +1,6 @@
 <?php
 
-namespace PHPCR\Util\NodeType\Importer\Exception;
+namespace PHPCR\Util\NodeType\Serializer\Exception;
 
 class InvalidConfigurationException extends \Exception
 {

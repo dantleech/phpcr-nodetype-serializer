@@ -1,20 +1,20 @@
 <?php
 
-namespace PHPCR\Util\NodeType\Importer\YAML;
+namespace PHPCR\Util\NodeType\Serializer;
 
 use Symfony\Component\Yaml\Yaml;
 use PHPCR\SessionInterface;
-use PHPCR\Util\NodeType\Importer\Exception\InvalidConfigurationException;
+use PHPCR\Util\NodeType\Serializer\Exception\InvalidConfigurationException;
 use PHPCR\PropertyType;
 
 /**
- * Translate a YAML file into node type definitions.
+ * Deserializes a YAML file into node type definitions.
  *
  * Namespaces can also be registered.
  *
  * @author Daniel Leech <daniel@dantleech.com>
  */
-class YAMLImporter
+class YAMLDeserializer
 {
     protected $session;
     protected $map = array();

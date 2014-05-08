@@ -1,13 +1,13 @@
 <?php
 
-namespace PHPCR\Util\Tests\NodeType\Importer\YAML;
+namespace PHPCR\Util\Tests\NodeType\Serializer;
 
 use PHPCR\SimpleCredentials;
 use PHPCR\NodeType\NodeDefinitionTemplateInterface;
 use PHPCR\Version\OnParentVersionAction;
-use PHPCR\Util\NodeType\Importer\YAML\YAMLImporter;
+use PHPCR\Util\NodeType\Serializer\YAMLDeserializer;
 
-class YAMLImporterTest extends BaseTestCase
+class YAMLDeserializerTest extends BaseTestCase
 {
     protected $session;
     protected $workspace;
@@ -27,7 +27,7 @@ class YAMLImporterTest extends BaseTestCase
         $this->ndTemplates = new \ArrayObject();
         $this->pdTemplates = new \ArrayObject();
 
-        $this->parser = new YAMLImporter($this->session->reveal());
+        $this->parser = new YAMLDeserializer($this->session->reveal());
 
         $this->session->getWorkspace()->willReturn($this->workspace);
         $this->workspace->getNamespaceRegistry()->willReturn($this->nsRegistry);
@@ -41,7 +41,7 @@ class YAMLImporterTest extends BaseTestCase
         $this->ntTemplate->getPropertyDefinitionTemplates()->willReturn($this->pdTemplates);
     }
 
-    public function testImporter()
+    public function testDeserializer()
     {
         $this->nsRegistry->registerNamespace('test', 'http://www.example.com/test')->shouldBeCalled();
         $this->nsRegistry->registerNamespace('boo', 'http://www.example.com/boo')->shouldBeCalled();
@@ -102,12 +102,12 @@ class YAMLImporterTest extends BaseTestCase
             $this->pdTemplate->$methodName($expectedValue)->shouldBeCalled();
         }
 
-        $this->parser->getNodeTypeTemplates(file_get_contents(__DIR__ . '/../../../../../../fixtures/nodetype1.yml'));
+        $this->parser->getNodeTypeTemplates(file_get_contents(__DIR__ . '/../../../../../fixtures/nodetype1.yml'));
     }
 
     public function testInvalidKeys1()
     {
-        $this->setExpectedException('PHPCR\Util\NodeType\Importer\Exception\InvalidConfigurationException', <<<EOT
+        $this->setExpectedException('PHPCR\Util\NodeType\Serializer\Exception\InvalidConfigurationException', <<<EOT
 - Unknown key "invalid1", must be one of "namespace, children, auto_created, properties, abstract, mixin, orderable_child_nodes, primary_item_name, queryable, declared_super_type_names"
  - Unknown key "invalid2", must be one of "namespace, children, auto_created, properties, abstract, mixin, orderable_child_nodes, primary_item_name, queryable, declared_super_type_names"
  - Unknown key "invalid4", must be one of "namespace, auto_created, mandatory, protected, default_primary_type, same_name_siblings, on_parent_version, required_primary_types"
@@ -115,12 +115,12 @@ class YAMLImporterTest extends BaseTestCase
 EOT
         );
 
-        $this->parser->getNodeTypeTemplates(file_get_contents(__DIR__ . '/../../../../../../fixtures/nodetype2.yml'));
+        $this->parser->getNodeTypeTemplates(file_get_contents(__DIR__ . '/../../../../../fixtures/nodetype2.yml'));
     }
 
     public function testInvalidKeys2()
     {
-        $this->setExpectedException('PHPCR\Util\NodeType\Importer\Exception\InvalidConfigurationException', <<<EOT
+        $this->setExpectedException('PHPCR\Util\NodeType\Serializer\Exception\InvalidConfigurationException', <<<EOT
  - Unknown key "barbar", must be one of "namespaces, node_types"
  - Unknown key "invalid1", must be one of "namespace, children, auto_created, properties, abstract, mixin, orderable_child_nodes, primary_item_name, queryable, declared_super_type_names"
  - Unknown key "invalid2", must be one of "namespace, children, auto_created, properties, abstract, mixin, orderable_child_nodes, primary_item_name, queryable, declared_super_type_names"
@@ -128,6 +128,6 @@ EOT
  - Unknown key "0", must be one of "auto_created, namespace, mandatory, multiple, protected, default_value, full_text_searchable, query_orderable, required_type, value_constraints, available_query_operators, on_parent_version"
 EOT
         );
-        $this->parser->getNodeTypeTemplates(file_get_contents(__DIR__ . '/../../../../../../fixtures/nodetype3.yml'));
+        $this->parser->getNodeTypeTemplates(file_get_contents(__DIR__ . '/../../../../../fixtures/nodetype3.yml'));
     }
 }
