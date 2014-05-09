@@ -41,11 +41,8 @@ class YAMLDeserializerTest extends BaseTestCase
         $this->ntTemplate->getPropertyDefinitionTemplates()->willReturn($this->pdTemplates);
     }
 
-    public function testDeserializer()
+    protected function primeNodeType()
     {
-        $this->nsRegistry->registerNamespace('test', 'http://www.example.com/test')->shouldBeCalled();
-        $this->nsRegistry->registerNamespace('boo', 'http://www.example.com/boo')->shouldBeCalled();
-
         // node type defininition assertions
         $assertions = array(
             'setName' => 'test:article',
@@ -101,33 +98,47 @@ class YAMLDeserializerTest extends BaseTestCase
         foreach ($assertions as $methodName => $expectedValue) {
             $this->pdTemplate->$methodName($expectedValue)->shouldBeCalled();
         }
+    }
 
-        $this->parser->getNodeTypeTemplates(file_get_contents(__DIR__ . '/../../../../../fixtures/nodetype1.yml'));
+    public function testDeserializeAggregate()
+    {
+        $this->nsRegistry->registerNamespace('test', 'http://www.example.com/test')->shouldBeCalled();
+        $this->nsRegistry->registerNamespace('boo', 'http://www.example.com/boo')->shouldBeCalled();
+
+
+        $this->primeNodeType();
+        $this->parser->deserializeAggregate(file_get_contents(__DIR__ . '/../../../../../fixtures/nodetype1.yml'));
+    }
+
+    public function testDeserialize()
+    {
+        $this->primeNodeType();
+        $this->parser->deserialize(file_get_contents(__DIR__ . '/../../../../../fixtures/nodetype-single.yml'));
     }
 
     public function testInvalidKeys1()
     {
         $this->setExpectedException('PHPCR\Util\NodeType\Serializer\Exception\InvalidConfigurationException', <<<EOT
-- Unknown key "invalid1", must be one of "namespace, children, auto_created, properties, abstract, mixin, orderable_child_nodes, primary_item_name, queryable, declared_super_type_names"
- - Unknown key "invalid2", must be one of "namespace, children, auto_created, properties, abstract, mixin, orderable_child_nodes, primary_item_name, queryable, declared_super_type_names"
- - Unknown key "invalid4", must be one of "namespace, auto_created, mandatory, protected, default_primary_type, same_name_siblings, on_parent_version, required_primary_types"
- - Unknown key "invalid3", must be one of "auto_created, namespace, mandatory, multiple, protected, default_value, full_text_searchable, query_orderable, required_type, value_constraints, available_query_operators, on_parent_version
+ - Unknown key "invalid1", must be one of "name, children, auto_created, properties, abstract, mixin, orderable_child_nodes, primary_item_name, queryable, declared_super_type_names"
+ - Unknown key "invalid2", must be one of "name, children, auto_created, properties, abstract, mixin, orderable_child_nodes, primary_item_name, queryable, declared_super_type_names"
+ - Unknown key "invalid4", must be one of "name, auto_created, mandatory, protected, default_primary_type, same_name_siblings, on_parent_version, required_primary_types"
+ - Unknown key "invalid3", must be one of "name, auto_created, mandatory, multiple, protected, default_value, full_text_searchable, query_orderable, required_type, value_constraints, available_query_operators, on_parent_version
 EOT
         );
 
-        $this->parser->getNodeTypeTemplates(file_get_contents(__DIR__ . '/../../../../../fixtures/nodetype2.yml'));
+        $this->parser->deserializeAggregate(file_get_contents(__DIR__ . '/../../../../../fixtures/nodetype2.yml'));
     }
 
     public function testInvalidKeys2()
     {
         $this->setExpectedException('PHPCR\Util\NodeType\Serializer\Exception\InvalidConfigurationException', <<<EOT
  - Unknown key "barbar", must be one of "namespaces, node_types"
- - Unknown key "invalid1", must be one of "namespace, children, auto_created, properties, abstract, mixin, orderable_child_nodes, primary_item_name, queryable, declared_super_type_names"
- - Unknown key "invalid2", must be one of "namespace, children, auto_created, properties, abstract, mixin, orderable_child_nodes, primary_item_name, queryable, declared_super_type_names"
- - Unknown key "0", must be one of "namespace, auto_created, mandatory, protected, default_primary_type, same_name_siblings, on_parent_version, required_primary_types"
- - Unknown key "0", must be one of "auto_created, namespace, mandatory, multiple, protected, default_value, full_text_searchable, query_orderable, required_type, value_constraints, available_query_operators, on_parent_version"
+ - Unknown key "invalid1", must be one of "name, children, auto_created, properties, abstract, mixin, orderable_child_nodes, primary_item_name, queryable, declared_super_type_names"
+ - Unknown key "invalid2", must be one of "name, children, auto_created, properties, abstract, mixin, orderable_child_nodes, primary_item_name, queryable, declared_super_type_names"
+ - Unknown key "0", must be one of "name, auto_created, mandatory, protected, default_primary_type, same_name_siblings, on_parent_version, required_primary_types"
+ - Unknown key "0", must be one of "name, auto_created, mandatory, multiple, protected, default_value, full_text_searchable, query_orderable, required_type, value_constraints, available_query_operators, on_parent_version
 EOT
         );
-        $this->parser->getNodeTypeTemplates(file_get_contents(__DIR__ . '/../../../../../fixtures/nodetype3.yml'));
+        $this->parser->deserializeAggregate(file_get_contents(__DIR__ . '/../../../../../fixtures/nodetype3.yml'));
     }
 }

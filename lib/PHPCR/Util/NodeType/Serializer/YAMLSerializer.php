@@ -6,6 +6,7 @@ use PHPCR\PropertyType;
 use Symfony\Component\Yaml\Dumper;
 use PHPCR\NodeType\NodeTypeInterface;
 use Symfony\Component\Yaml\Yaml;
+use PHPCR\NodeType\ItemDefinitionInterface;
 
 /**
  * PHPCR node type YAML serializer
@@ -37,7 +38,7 @@ class YAMLSerializer
 
         foreach ($nt->getDeclaredPropertyDefinitions() as $pd) {
             $property = $this->getItemDefinitionArray($pd);
-            $property = array_merge(array(
+            $property = array_merge($property, array(
                 'required_type' => PropertyType::nameFromValue($pd->getRequiredType()),
                 'value_contraints' => $pd->getValueConstraints(),
                 'default_values' => $pd->getDefaultValues(),
@@ -45,13 +46,13 @@ class YAMLSerializer
                 'available_query_operators' => $pd->getAvailableQueryOperators(),
                 'full_text_searchable' => (boolean) $pd->isFullTextSearchable(),
                 'query_orderable' => (boolean) $pd->isQueryOrderable(),
-            ), $property);
+            ));
             $out['properties'][] = $property;
         }
 
         foreach ($nt->getDeclaredChildNodeDefinitions() as $cd) {
             $child = $this->getItemDefinitionArray($cd);
-            $child = array_merge(array(
+            $child = array_merge($child, array(
                 'required_primary_types' => $cd->getRequiredPrimaryTypeNames(),
                 'default_primary_type' => $cd->getDefaultPrimaryTypeName(),
                 'same_name_siblings' => (boolean) $cd->allowsSameNameSiblings(),
@@ -73,5 +74,4 @@ class YAMLSerializer
             'protected' => (boolean) $id->isProtected(),
         );
     }
-
 }

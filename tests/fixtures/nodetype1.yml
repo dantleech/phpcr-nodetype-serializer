@@ -3,16 +3,16 @@ namespaces:
     boo: http://www.example.com/boo
 
 node_types:
-    article:
-        namespace: test
+    -
+        name: 'test:article'
         abstract: true
         mixin: false
         orderable_child_nodes: true
         primary_item_name: comment
         queryable: true
         children:
-            comment:
-                namespace: test
+            -
+                name: 'test:comment'
                 mandatory: true
                 on_parent_version: COPY
                 protected: false
@@ -23,8 +23,8 @@ node_types:
                 same_name_siblings: true
                 auto_created: true
         properties:
-            title:
-                namespace: test
+            -
+                name: 'test:title'
                 auto_created: true
                 mandatory: true
                 on_parent_version: COPY
@@ -39,21 +39,3 @@ node_types:
                     - jcr_operator_not_equal_to
                 full_text_searchable: true
                 query_orderable: true
-#            tags:
-#                namespace: test
-#                auto_created: true
-#                mandatory: false
-#                on_parent_version: COPY
-#                protected: true
-#                required_type: STRING
-#                value_constraints:
-#                    - foobar.*
-#                default_value:
-#                    - "foo"
-#                    - "bar"
-#                multiple: true
-#                available_query_operators:
-#                    - jcr_operator_equal_to
-#                    - jcr_operator_not_equal_to
-#                full_text_searchable: true
-#                query_orderable: true

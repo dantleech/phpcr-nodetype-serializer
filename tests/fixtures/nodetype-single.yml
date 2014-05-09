@@ -1,0 +1,35 @@
+name: 'test:article'
+abstract: true
+mixin: false
+orderable_child_nodes: true
+primary_item_name: comment
+queryable: true
+children:
+    -
+        name: 'test:comment'
+        mandatory: true
+        on_parent_version: COPY
+        protected: false
+        required_primary_types:
+            - nt:unstructured
+            - nt:base
+        default_primary_type: nt:unstructured
+        same_name_siblings: true
+        auto_created: true
+properties:
+    -
+        name: 'test:title'
+        auto_created: true
+        mandatory: true
+        on_parent_version: COPY
+        protected: true
+        required_type: STRING
+        value_constraints:
+            - foobar.*
+        default_value: "Default Value"
+        multiple: false
+        available_query_operators:
+            - jcr_operator_equal_to
+            - jcr_operator_not_equal_to
+        full_text_searchable: true
+        query_orderable: true

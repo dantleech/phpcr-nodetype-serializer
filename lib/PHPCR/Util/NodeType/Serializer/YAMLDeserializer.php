@@ -54,7 +54,7 @@ class YAMLDeserializer
         );
         $this->map('base', 'node_types', 'array');
 
-        $this->map('nodeType', 'namespace',             'string');
+        $this->map('nodeType', 'name',                  'string',  function ($t, $v) { $t->setName($v); });
         $this->map('nodeType', 'children',              'array');
         $this->map('nodeType', 'auto_created',          'boolean', function ($t, $v) { $t->setAutoCreated((boolean) $v); });
         $this->map('nodeType', 'properties',            'array');
@@ -68,12 +68,12 @@ class YAMLDeserializer
             function ($t, $v) { $t->setDeclaredSuperTypeNames((array) $v); }
         );
 
-        $this->map('child', 'namespace',            'string');
-        $this->map('child', 'auto_created',         'boolean',   function ($t, $v) { $t->setAutoCreated((boolean) $v); });
-        $this->map('child', 'mandatory',            'boolean',   function ($t, $v) { $t->setMandatory((boolean) $v); });
-        $this->map('child', 'protected',            'boolean',   function ($t, $v) { $t->setProtected((boolean) $v); });
-        $this->map('child', 'default_primary_type', 'string', function ($t, $v) { $t->setDefaultPrimaryTypeName($v); });
-        $this->map('child', 'same_name_siblings',   'boolean',   function ($t, $v) { $t->setSameNameSiblings((boolean) $v); });
+        $this->map('child', 'name',                 'string',  function ($t, $v) { $t->setName($v); });
+        $this->map('child', 'auto_created',         'boolean', function ($t, $v) { $t->setAutoCreated((boolean) $v); });
+        $this->map('child', 'mandatory',            'boolean', function ($t, $v) { $t->setMandatory((boolean) $v); });
+        $this->map('child', 'protected',            'boolean', function ($t, $v) { $t->setProtected((boolean) $v); });
+        $this->map('child', 'default_primary_type', 'string',  function ($t, $v) { $t->setDefaultPrimaryTypeName($v); });
+        $this->map('child', 'same_name_siblings',   'boolean', function ($t, $v) { $t->setSameNameSiblings((boolean) $v); });
         $this->map('child', 'on_parent_version',
             $this->getOnParentActionValidator(),
             function ($t, $v) {
@@ -85,14 +85,14 @@ class YAMLDeserializer
             function ($t, $v) { $t->setRequiredPrimaryTypeNames((array) $v); }
         );
 
-        $this->map('property', 'auto_created',         'boolean',   function ($t, $v) { $t->setAutoCreated((boolean) $v); });
-        $this->map('property', 'namespace',            'string');
-        $this->map('property', 'mandatory',            'boolean',   function ($t, $v) { $t->setMandatory((boolean) $v); });
-        $this->map('property', 'multiple',             'boolean',   function ($t, $v) { $t->setMultiple((boolean) $v); });
-        $this->map('property', 'protected',            'boolean',   function ($t, $v) { $t->setProtected((boolean) $v); });
-        $this->map('property', 'default_value',        'scalar', function ($t, $v) { $t->setDefaultValues((array) $v); });
-        $this->map('property', 'full_text_searchable', 'boolean',   function ($t, $v) { $t->setFullTextSearchable((boolean) $v); });
-        $this->map('property', 'query_orderable',      'boolean',   function ($t, $v) { $t->setQueryOrderable((boolean) $v); });
+        $this->map('property', 'name',                 'string',  function ($t, $v) { $t->setName($v); });
+        $this->map('property', 'auto_created',         'boolean', function ($t, $v) { $t->setAutoCreated((boolean) $v); });
+        $this->map('property', 'mandatory',            'boolean', function ($t, $v) { $t->setMandatory((boolean) $v); });
+        $this->map('property', 'multiple',             'boolean', function ($t, $v) { $t->setMultiple((boolean) $v); });
+        $this->map('property', 'protected',            'boolean', function ($t, $v) { $t->setProtected((boolean) $v); });
+        $this->map('property', 'default_value',        'scalar',  function ($t, $v) { $t->setDefaultValues((array) $v); });
+        $this->map('property', 'full_text_searchable', 'boolean', function ($t, $v) { $t->setFullTextSearchable((boolean) $v); });
+        $this->map('property', 'query_orderable',      'boolean', function ($t, $v) { $t->setQueryOrderable((boolean) $v); });
 
         $this->map('property', 'required_type',
             $this->getTypeValidator(),
@@ -286,29 +286,16 @@ class YAMLDeserializer
     }
 
     /**
-     * Get the name including the namespace if it is set in the parent data
+     * Deserialize an aggregate node type definition.
      *
-     * @param string $name
-     * @param array  $data
-     */
-    private function getName($name, $data)
-    {
-        if (isset($data['namespace'])) {
-            $name = $data['namespace'] . ':' . $name;
-        }
-
-        return $name;
-    }
-
-    /**
-     * Return an array of node type definition templates for the given file.
-     * If a namespaces key is present, register those namespaces with the repository also.
+     * An aggregate definition contains any number of node types and any number
+     * of namespace definitions.
      *
      * @param string $yaml YAML string
      *
-     * @return array
+     * @return NodeTypeTemplateInterface
      */
-    public function getNodeTypeTemplates($yaml)
+    public function deserializeAggregate($yaml)
     {
         $data = Yaml::parse($yaml);
         $data = new \ArrayObject($data);
@@ -324,8 +311,8 @@ class YAMLDeserializer
 
         $ntTemplates = array();
         if (isset($data['node_types'])) {
-            foreach ($data['node_types'] as $name => $nodeType) {
-                $ntTemplate = $this->createNtTemplate($name, $nodeType);
+            foreach ($data['node_types'] as $nodeType) {
+                $ntTemplate = $this->createNtTemplate($nodeType);
             }
         }
 
@@ -333,27 +320,41 @@ class YAMLDeserializer
     }
 
     /**
+     * Deserialize a single node type definition
+     *
+     * @param string $yaml
+     *
+     * @return NodeTypeTemplateInterface
+     */
+    public function deserialize($yaml)
+    {
+        $data = Yaml::parse($yaml);
+        $this->configure();
+        $this->validateBlock('nodeType', $data);
+        return $this->createNtTemplate($data);
+    }
+
+    /**
      * Create a node type template
      *
      * @return PHPCR\NodeType\NodeTypeTemplateInterface
      */
-    private function createNtTemplate($name, $nodeTypeData)
+    private function createNtTemplate($nodeTypeData)
     {
         $ntTemplate = $this->getNodeTypeManager()->createNodeTypeTemplate();
-        $ntTemplate->setName($this->getName($name, $nodeTypeData));
 
         foreach (array_keys($nodeTypeData) as $key) {
             $this->applySetter('nodeType', $key, $ntTemplate, $nodeTypeData);
 
             if (isset($nodeTypeData['children'])) {
-                foreach ($nodeTypeData['children'] as $name => $childData) {
-                    $ntTemplate->getNodeDefinitionTemplates()->append($this->createChildTemplate($name, $childData));
+                foreach ($nodeTypeData['children'] as $childData) {
+                    $ntTemplate->getNodeDefinitionTemplates()->append($this->createChildTemplate($childData));
                 }
             }
 
             if (isset($nodeTypeData['properties'])) {
-                foreach ($nodeTypeData['properties'] as $name => $propertyData) {
-                    $ntTemplate->getPropertyDefinitionTemplates()->append($this->createPropertyTemplate($name, $propertyData));
+                foreach ($nodeTypeData['properties'] as $propertyData) {
+                    $ntTemplate->getPropertyDefinitionTemplates()->append($this->createPropertyTemplate($propertyData));
                 }
             }
         }
@@ -366,10 +367,9 @@ class YAMLDeserializer
      *
      * @return PHPCR\NodeType\NodeDefinitionTemplateInterface
      */
-    private function createChildTemplate($name, $childData)
+    private function createChildTemplate($childData)
     {
         $ndTemplate = $this->getNodeTypeManager()->createNodeDefinitionTemplate();
-        $ndTemplate->setName($this->getName($name, $childData));
 
         foreach (array_keys($childData) as $key) {
             $this->applySetter('child', $key, $ndTemplate, $childData);
@@ -383,10 +383,9 @@ class YAMLDeserializer
      *
      * @return PHPCR\NodeType\PropertyDefinitionTemplateInterface
      */
-    private function createPropertyTemplate($name, $propertyData)
+    private function createPropertyTemplate($propertyData)
     {
         $pTemplate = $this->getNodeTypeManager()->createPropertyDefinitionTemplate();
-        $pTemplate->setName($this->getName($name, $propertyData));
 
         foreach (array_keys($propertyData) as $key) {
             $this->applySetter('property', $key, $pTemplate, $propertyData);
