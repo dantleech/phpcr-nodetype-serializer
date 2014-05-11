@@ -94,6 +94,7 @@ class YAMLDeserializer
         $this->map('property', 'default_value',        'scalar',  function ($t, $v) { $t->setDefaultValues((array) $v); });
         $this->map('property', 'full_text_searchable', 'boolean', function ($t, $v) { $t->setFullTextSearchable((boolean) $v); });
         $this->map('property', 'query_orderable',      'boolean', function ($t, $v) { $t->setQueryOrderable((boolean) $v); });
+        $this->map('property', 'value_constraints',    'array',   function ($t, $v) { $t->setValueConstraints((array) $v); });
 
         $this->map('property', 'required_type',
             $this->getTypeValidator(),
@@ -405,6 +406,12 @@ class YAMLDeserializer
      */
     private function applySetter($type, $name, $template, $data)
     {
+        if (!isset($this->map[$type][$name])) {
+            sprintf('No property "%s" mapped for type "%s"',
+                $name, $type
+            );
+        }
+
         $setter = $this->map[$type][$name]['setter'];
         if ($setter) {
             $value = $data[$name];

@@ -88,7 +88,7 @@ properties:
         protected: true
         required_type: undefined
         value_contraints: '.*'
-        default_values:
+        default_value:
             - default_value
         multiple: true
         available_query_operators: {  }
