@@ -111,7 +111,7 @@ class YAMLDeserializer
             function ($t, $v) {
                 $queryOperators = array();
                 foreach ($v as $queryOperator) {
-                    $queryOperator = constant('PHPCR\Query\QOM\QueryObjectModelConstantsInterface::' . strtoupper($queryOperator));
+                    $queryOperator = constant('PHPCR\Query\QOM\QueryObjectModelConstantsInterface::' . strtoupper(str_replace('.', '_', $queryOperator)));
                     $queryOperators[] = $queryOperator;
                 }
                 $t->setAvailableQueryOperators($queryOperators);

@@ -36,7 +36,7 @@ class YAMLSerializerTest extends BaseTestCase
         $this->propertyDefinition->getName()->willReturn('test:title');
         $this->propertyDefinition->isAutoCreated()->willReturn(true);
         $this->propertyDefinition->isMandatory()->willReturn(true);
-        $this->propertyDefinition->getOnParentVersion()->willReturn('COPY');
+        $this->propertyDefinition->getOnParentVersion()->willReturn(1);
         $this->propertyDefinition->isProtected()->willReturn(true);
         $this->propertyDefinition->getRequiredType()->willReturn('STRING');
         $this->propertyDefinition->getValueConstraints()->willReturn('.*');
@@ -49,7 +49,7 @@ class YAMLSerializerTest extends BaseTestCase
         $this->nodeDefinition->getName()->willReturn('test:comment');
         $this->nodeDefinition->isAutoCreated()->willReturn(true);
         $this->nodeDefinition->isMandatory()->willReturn(true);
-        $this->nodeDefinition->getOnParentVersion()->willReturn('COPY');
+        $this->nodeDefinition->getOnParentVersion()->willReturn(1);
         $this->nodeDefinition->isProtected()->willReturn(true);
         $this->nodeDefinition->getRequiredPrimaryTypeNames()->willReturn(array(
             'nt:unstructured',

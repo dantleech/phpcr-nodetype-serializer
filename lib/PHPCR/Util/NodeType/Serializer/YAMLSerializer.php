@@ -7,6 +7,7 @@ use Symfony\Component\Yaml\Dumper;
 use PHPCR\NodeType\NodeTypeInterface;
 use Symfony\Component\Yaml\Yaml;
 use PHPCR\NodeType\ItemDefinitionInterface;
+use PHPCR\Version\OnParentVersionAction;
 
 /**
  * PHPCR node type YAML serializer
@@ -70,7 +71,7 @@ class YAMLSerializer
             'name' => $id->getName(),
             'auto_created' => (boolean) $id->isAutoCreated(),
             'mandatory' => (boolean) $id->isMandatory(),
-            'on_parent_version' => $id->getOnParentVersion(),
+            'on_parent_version' => OnParentVersionAction::nameFromValue($id->getOnParentVersion()),
             'protected' => (boolean) $id->isProtected(),
         );
     }
