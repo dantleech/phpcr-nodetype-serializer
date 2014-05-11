@@ -57,11 +57,12 @@ class YAMLDeserializer
         $this->map('nodeType', 'name',                  'string',  function ($t, $v) { $t->setName($v); });
         $this->map('nodeType', 'children',              'array');
         $this->map('nodeType', 'auto_created',          'boolean', function ($t, $v) { $t->setAutoCreated((boolean) $v); });
+        $this->map('nodeType', 'declared_supertypes',   'array'  , function ($t, $v) { $t->setDeclaredSuperTypeNames((array) $v); });
         $this->map('nodeType', 'properties',            'array');
         $this->map('nodeType', 'abstract',              'boolean', function ($t, $v) { $t->setAbstract($v); });
         $this->map('nodeType', 'mixin',                 'boolean', function ($t, $v) { $t->setMixin((boolean) $v); });
         $this->map('nodeType', 'orderable_child_nodes', 'boolean', function ($t, $v) { $t->setOrderableChildNodes((boolean) $v); });
-        $this->map('nodeType', 'primary_item_name',     'string',  function ($t, $v) { $t->setPrimaryItemName((string) $v); });
+        $this->map('nodeType', 'primary_item',          'string',  function ($t, $v) { $t->setPrimaryItemName((string) $v); });
         $this->map('nodeType', 'queryable',             'boolean', function ($t, $v) { $t->setQueryable((boolean) $v); });
         $this->map('nodeType', 'declared_super_type_names', 
             $this->getScalarArrayValidator('string'),

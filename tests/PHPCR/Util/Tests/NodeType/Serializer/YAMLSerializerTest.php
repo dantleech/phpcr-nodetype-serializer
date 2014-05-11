@@ -72,13 +72,13 @@ class YAMLSerializerTest extends BaseTestCase
         $res = $this->serializer->serialize($this->nodeType->reveal());
         $expected = <<<EOT
 name: 'test:article'
-declared_supertype_names:
+declared_supertypes:
     - 'nt:unstructured'
 abstract: true
 mixin: true
 orderable_child_nodes: true
 queryable: true
-primary_item_name: comment
+primary_item: comment
 properties:
     -
         name: 'test:title'

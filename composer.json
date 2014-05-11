@@ -1,6 +1,6 @@
 {
-    "name": "phpcr/phpcr-nt-yaml",
-    "description": "PHPCR YAML Node Type reader and dumper",
+    "name": "phpcr/phpcr-nodetype-serializer",
+    "description": "YAML serializer / deserializer for PHPCR node types",
     "license": "MIT",
     "authors": [
         {
@@ -15,7 +15,7 @@
         }
     },
     "require": {
-        "phpcr/phpcr": "dev-master"
+        "phpcr/phpcr": "2.1.*"
     },
     "require-dev": {
         "phpspec/prophecy": "1.1.2"

@@ -8,7 +8,9 @@ node_types:
         abstract: true
         mixin: false
         orderable_child_nodes: true
-        primary_item_name: comment
+        declared_supertypes:
+            - nt:unstructured
+        primary_item: comment
         queryable: true
         children:
             -

@@ -26,12 +26,12 @@ class YAMLSerializer
     {
         $out = array(
             'name' => $nt->getName(),
-            'declared_supertype_names' => $nt->getDeclaredSupertypeNames(),
+            'declared_supertypes' => $nt->getDeclaredSupertypeNames(),
             'abstract' => (boolean) $nt->isAbstract(),
             'mixin' => (boolean) $nt->isMixin(),
             'orderable_child_nodes' => (boolean) $nt->hasOrderableChildNodes(),
             'queryable' => (boolean) $nt->isQueryable(),
-            'primary_item_name' => $nt->getPrimaryItemName(),
+            'primary_item' => $nt->getPrimaryItemName(),
             'properties' => array(),
             'children' => array(),
         );

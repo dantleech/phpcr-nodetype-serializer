@@ -2,7 +2,9 @@ name: 'test:article'
 abstract: true
 mixin: false
 orderable_child_nodes: true
-primary_item_name: comment
+primary_item: comment
+declared_supertypes:
+    - nt:unstructured
 queryable: true
 children:
     -

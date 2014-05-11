@@ -51,6 +51,7 @@ class YAMLDeserializerTest extends BaseTestCase
             'setOrderableChildNodes' => true,
             'setQueryable' => true,
             'setPrimaryItemName' => 'comment',
+            'setDeclaredSuperTypeNames' => array('nt:unstructured'),
         );
 
         foreach ($assertions as $methodName => $expectedValue) {
@@ -118,27 +119,14 @@ class YAMLDeserializerTest extends BaseTestCase
 
     public function testInvalidKeys1()
     {
-        $this->setExpectedException('PHPCR\Util\NodeType\Serializer\Exception\InvalidConfigurationException', <<<EOT
- - Unknown key "invalid1", must be one of "name, children, auto_created, properties, abstract, mixin, orderable_child_nodes, primary_item_name, queryable, declared_super_type_names"
- - Unknown key "invalid2", must be one of "name, children, auto_created, properties, abstract, mixin, orderable_child_nodes, primary_item_name, queryable, declared_super_type_names"
- - Unknown key "invalid4", must be one of "name, auto_created, mandatory, protected, default_primary_type, same_name_siblings, on_parent_version, required_primary_types"
- - Unknown key "invalid3", must be one of "name, auto_created, mandatory, multiple, protected, default_value, full_text_searchable, query_orderable, required_type, value_constraints, available_query_operators, on_parent_version
-EOT
-        );
+        $this->setExpectedException('PHPCR\Util\NodeType\Serializer\Exception\InvalidConfigurationException');
 
         $this->parser->deserializeAggregate(file_get_contents(__DIR__ . '/../../../../../fixtures/nodetype2.yml'));
     }
 
     public function testInvalidKeys2()
     {
-        $this->setExpectedException('PHPCR\Util\NodeType\Serializer\Exception\InvalidConfigurationException', <<<EOT
- - Unknown key "barbar", must be one of "namespaces, node_types"
- - Unknown key "invalid1", must be one of "name, children, auto_created, properties, abstract, mixin, orderable_child_nodes, primary_item_name, queryable, declared_super_type_names"
- - Unknown key "invalid2", must be one of "name, children, auto_created, properties, abstract, mixin, orderable_child_nodes, primary_item_name, queryable, declared_super_type_names"
- - Unknown key "0", must be one of "name, auto_created, mandatory, protected, default_primary_type, same_name_siblings, on_parent_version, required_primary_types"
- - Unknown key "0", must be one of "name, auto_created, mandatory, multiple, protected, default_value, full_text_searchable, query_orderable, required_type, value_constraints, available_query_operators, on_parent_version
-EOT
-        );
+        $this->setExpectedException('PHPCR\Util\NodeType\Serializer\Exception\InvalidConfigurationException');
         $this->parser->deserializeAggregate(file_get_contents(__DIR__ . '/../../../../../fixtures/nodetype3.yml'));
     }
 }
