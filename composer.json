@@ -1,5 +1,5 @@
 {
-    "name": "phpcr/phpcr-nodetype-serializer",
+    "name": "dantleech/phpcr-nodetype-serializer",
     "description": "YAML serializer / deserializer for PHPCR node types",
     "license": "MIT",
     "authors": [
