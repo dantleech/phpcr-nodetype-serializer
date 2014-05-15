@@ -65,7 +65,7 @@ class YAMLDeserializer
                 'full_text_searchable' => function ($t, $v) { $t->setFullTextSearchable((boolean) $v); },
                 'query_orderable' => function ($t, $v) { $t->setQueryOrderable((boolean) $v); },
                 'value_constraints' => function ($t, $v) { $t->setValueConstraints((array) $v); },
-                'required_type' => function ($t, $v) {$t->setRequiredType(PropertyType::valueFromName($v)); },
+                'required_type' => function ($t, $v) { $t->setRequiredType(PropertyType::valueFromName($v)); },
                 'available_query_operators' => function ($t, $v) {
                     $queryOperators = array();
                     foreach ($v as $queryOperator) {
@@ -134,7 +134,23 @@ class YAMLDeserializer
         $schema = Yaml::parse(file_get_contents(__DIR__.'/schema/node-type.yml'));
         $schema = new MetaYaml($schema);
         // $schema->validateSchema();
+        $this->normalizeNodeType($data);
         $schema->validate($data);
+    }
+
+    private function normalizeNodeType(&$data)
+    {
+        if (isset($data['properties'])) {
+            foreach ($data['properties'] as &$property) {
+                if (isset($property['required_type'])) {
+                    $property['required_type'] = strtoupper($property['required_type']);
+                }
+
+                if (isset($property['on_parent_version'])) {
+                    $property['on_parent_version'] = strtoupper($property['on_parent_version']);
+                }
+            }
+        }
     }
 
     /**
@@ -167,6 +183,7 @@ class YAMLDeserializer
         }
 
         return $ntTemplate;
+
     }
 
     /**

@@ -42,7 +42,7 @@ class YAMLSerializer
             $property = array_merge($property, array(
                 'required_type' => PropertyType::nameFromValue($pd->getRequiredType()),
                 'value_constraints' => $pd->getValueConstraints(),
-                'default_value' => $pd->getDefaultValues(),
+                'default_values' => $pd->getDefaultValues(),
                 'multiple' => (boolean) $pd->isMultiple(),
                 'available_query_operators' => $pd->getAvailableQueryOperators(),
                 'full_text_searchable' => (boolean) $pd->isFullTextSearchable(),

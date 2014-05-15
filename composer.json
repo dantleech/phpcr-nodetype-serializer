@@ -19,6 +19,7 @@
         "romaricdrigon/metayaml": "1.0.0"
     },
     "require-dev": {
-        "phpspec/prophecy": "1.1.2"
+        "phpspec/prophecy": "1.1.2",
+        "jackalope/jackalope": "1.1.1"
     }
 }
