@@ -87,7 +87,7 @@ properties:
         on_parent_version: COPY
         protected: true
         required_type: undefined
-        value_contraints: '.*'
+        value_constraints: '.*'
         default_value:
             - default_value
         multiple: true

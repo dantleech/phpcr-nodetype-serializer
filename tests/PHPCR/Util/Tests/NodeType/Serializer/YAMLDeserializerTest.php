@@ -119,14 +119,13 @@ class YAMLDeserializerTest extends BaseTestCase
 
     public function testInvalidKeys1()
     {
-        $this->setExpectedException('PHPCR\Util\NodeType\Serializer\Exception\InvalidConfigurationException');
-
+        $this->setExpectedException('RomaricDrigon\MetaYaml\Exception\NodeValidatorException');
         $this->parser->deserializeAggregate(file_get_contents(__DIR__ . '/../../../../../fixtures/nodetype2.yml'));
     }
 
     public function testInvalidKeys2()
     {
-        $this->setExpectedException('PHPCR\Util\NodeType\Serializer\Exception\InvalidConfigurationException');
+        $this->setExpectedException('RomaricDrigon\MetaYaml\Exception\NodeValidatorException');
         $this->parser->deserializeAggregate(file_get_contents(__DIR__ . '/../../../../../fixtures/nodetype3.yml'));
     }
 }

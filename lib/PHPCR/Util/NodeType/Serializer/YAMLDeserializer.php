@@ -6,6 +6,10 @@ use Symfony\Component\Yaml\Yaml;
 use PHPCR\SessionInterface;
 use PHPCR\Util\NodeType\Serializer\Exception\InvalidConfigurationException;
 use PHPCR\PropertyType;
+use PHPCR\NodeType\ItemDefinitionInterface;
+use RomaricDrigon\MetaYaml\MetaYaml;
+use PHPCR\Version\OnParentVersionAction;
+use RomaricDrigon\MetaYaml\Loader\YamlLoader;
 
 /**
  * Deserializes a YAML file into node type definitions.
@@ -17,8 +21,10 @@ use PHPCR\PropertyType;
 class YAMLDeserializer
 {
     protected $session;
-    protected $map = array();
-    protected $errors = array();
+
+    protected $nodeTypeMap = array();
+    protected $propertyMap = array();
+    protected $nodeDefinitionMap = array();
 
     /**
      * @param SessionInterface $session
@@ -26,6 +32,50 @@ class YAMLDeserializer
     public function __construct(SessionInterface $session)
     {
         $this->session = $session;
+        $this->configure();
+    }
+
+    private function configure()
+    {
+        $this->nodeTypeMap = array(
+            'name' => function ($t, $v) { $t->setName($v); },
+            'auto_created' => function ($t, $v) { $t->setAutoCreated((boolean) $v); },
+            'declared_supertypes' => function ($t, $v) { $t->setDeclaredSuperTypeNames((array) $v); },
+            'abstract' => function ($t, $v) { $t->setAbstract($v); },
+            'mixin' => function ($t, $v) { $t->setMixin((boolean) $v); },
+            'orderable_child_nodes' => function ($t, $v) { $t->setOrderableChildNodes((boolean) $v); },
+            'primary_item' => function ($t, $v) { $t->setPrimaryItemName((string) $v); },
+            'queryable' => function ($t, $v) { $t->setQueryable((boolean) $v); },
+        );
+
+        $this->childDefinitionMap = array_merge(
+            $this->getItemDefinitionMap(),
+            array(
+                'default_primary_type' => function ($t, $v) { $t->setDefaultPrimaryTypeName($v); },
+                'same_name_siblings' => function ($t, $v) { $t->setSameNameSiblings((boolean) $v); },
+                'required_primary_types' => function ($t, $v) { $t->setRequiredPrimaryTypeNames((array) $v); },
+            )
+        );
+
+        $this->propertyMap = array_merge(
+            $this->getItemDefinitionMap(),
+            array(
+                'multiple' => function ($t, $v) { $t->setMultiple((boolean) $v); },
+                'default_values' => function ($t, $v) { $t->setDefaultValues((array) $v); },
+                'full_text_searchable' => function ($t, $v) { $t->setFullTextSearchable((boolean) $v); },
+                'query_orderable' => function ($t, $v) { $t->setQueryOrderable((boolean) $v); },
+                'value_constraints' => function ($t, $v) { $t->setValueConstraints((array) $v); },
+                'required_type' => function ($t, $v) {$t->setRequiredType(PropertyType::valueFromName($v)); },
+                'available_query_operators' => function ($t, $v) {
+                    $queryOperators = array();
+                    foreach ($v as $queryOperator) {
+                        $queryOperator = constant('PHPCR\Query\QOM\QueryObjectModelConstantsInterface::' . strtoupper(str_replace('.', '_', $queryOperator)));
+                        $queryOperators[] = $queryOperator;
+                    }
+                    $t->setAvailableQueryOperators($queryOperators);
+                }
+            )
+        );
     }
 
     /**
@@ -45,265 +95,23 @@ class YAMLDeserializer
     }
 
     /**
-     * Configure the valid keys, validation and setters
-     */
-    protected function configure()
-    {
-        $this->map('base', 'namespaces',
-            $this->getScalarArrayValidator()
-        );
-        $this->map('base', 'node_types', 'array');
-
-        $this->map('nodeType', 'name',                  'string',  function ($t, $v) { $t->setName($v); });
-        $this->map('nodeType', 'children',              'array');
-        $this->map('nodeType', 'auto_created',          'boolean', function ($t, $v) { $t->setAutoCreated((boolean) $v); });
-        $this->map('nodeType', 'declared_supertypes',   'array'  , function ($t, $v) { $t->setDeclaredSuperTypeNames((array) $v); });
-        $this->map('nodeType', 'properties',            'array');
-        $this->map('nodeType', 'abstract',              'boolean', function ($t, $v) { $t->setAbstract($v); });
-        $this->map('nodeType', 'mixin',                 'boolean', function ($t, $v) { $t->setMixin((boolean) $v); });
-        $this->map('nodeType', 'orderable_child_nodes', 'boolean', function ($t, $v) { $t->setOrderableChildNodes((boolean) $v); });
-        $this->map('nodeType', 'primary_item',          'string',  function ($t, $v) { $t->setPrimaryItemName((string) $v); });
-        $this->map('nodeType', 'queryable',             'boolean', function ($t, $v) { $t->setQueryable((boolean) $v); });
-        $this->map('nodeType', 'declared_super_type_names', 
-            $this->getScalarArrayValidator('string'),
-            function ($t, $v) { $t->setDeclaredSuperTypeNames((array) $v); }
-        );
-
-        $this->map('child', 'name',                 'string',  function ($t, $v) { $t->setName($v); });
-        $this->map('child', 'auto_created',         'boolean', function ($t, $v) { $t->setAutoCreated((boolean) $v); });
-        $this->map('child', 'mandatory',            'boolean', function ($t, $v) { $t->setMandatory((boolean) $v); });
-        $this->map('child', 'protected',            'boolean', function ($t, $v) { $t->setProtected((boolean) $v); });
-        $this->map('child', 'default_primary_type', 'string',  function ($t, $v) { $t->setDefaultPrimaryTypeName($v); });
-        $this->map('child', 'same_name_siblings',   'boolean', function ($t, $v) { $t->setSameNameSiblings((boolean) $v); });
-        $this->map('child', 'on_parent_version',
-            $this->getOnParentActionValidator(),
-            function ($t, $v) {
-                $t->setOnParentVersion(constant('\PHPCR\Version\OnParentVersionAction::' . strtoupper($v)));
-            }
-        );
-        $this->map('child', 'required_primary_types',
-            $this->getScalarArrayValidator(),
-            function ($t, $v) { $t->setRequiredPrimaryTypeNames((array) $v); }
-        );
-
-        $this->map('property', 'name',                 'string',  function ($t, $v) { $t->setName($v); });
-        $this->map('property', 'auto_created',         'boolean', function ($t, $v) { $t->setAutoCreated((boolean) $v); });
-        $this->map('property', 'mandatory',            'boolean', function ($t, $v) { $t->setMandatory((boolean) $v); });
-        $this->map('property', 'multiple',             'boolean', function ($t, $v) { $t->setMultiple((boolean) $v); });
-        $this->map('property', 'protected',            'boolean', function ($t, $v) { $t->setProtected((boolean) $v); });
-        $this->map('property', 'default_value',        'scalar',  function ($t, $v) { $t->setDefaultValues((array) $v); });
-        $this->map('property', 'full_text_searchable', 'boolean', function ($t, $v) { $t->setFullTextSearchable((boolean) $v); });
-        $this->map('property', 'query_orderable',      'boolean', function ($t, $v) { $t->setQueryOrderable((boolean) $v); });
-        $this->map('property', 'value_constraints',    'array',   function ($t, $v) { $t->setValueConstraints((array) $v); });
-
-        $this->map('property', 'required_type',
-            $this->getTypeValidator(),
-            function ($t, $v) {
-                $intVal = constant('PHPCR\PropertyType::' . strtoupper($v));
-                $t->setRequiredType($intVal);
-            }
-        );
-        $this->map('property', 'value_constraints',
-            $this->getScalarArrayValidator(),
-            function ($t, $v) { $t->setValueConstraints((array) $v); }
-        );
-        $this->map('property', 'available_query_operators', 
-            $this->getAvailableQueryOperatorsValidator(),
-            function ($t, $v) {
-                $queryOperators = array();
-                foreach ($v as $queryOperator) {
-                    $queryOperator = constant('PHPCR\Query\QOM\QueryObjectModelConstantsInterface::' . strtoupper(str_replace('.', '_', $queryOperator)));
-                    $queryOperators[] = $queryOperator;
-                }
-                $t->setAvailableQueryOperators($queryOperators);
-            }
-        );
-        $this->map('property', 'on_parent_version',
-            $this->getOnParentActionValidator(),
-            function ($t, $v) {
-                $t->setOnParentVersion(constant('PHPCR\Version\OnParentVersionAction::' . strtoupper($v)));
-            }
-        );
-    }
-
-    /**
-     * Used by configure()
-     */
-    private function map($type, $name, $validator, \Closure $setter = null)
-    {
-        $this->map[$type][$name] = array(
-            'validator' => $validator, 
-            'setter'    => $setter
-        );
-    }
-
-    /**
-     * Validate a set of key => value pairs for the given type
+     * Deserialize a single node type definition
      *
-     * Errors are added to class level $errors array
-     *
-     * @param string
-     * @param array
-     */
-    protected function validateBlock($type, $data)
-    {
-        $data = (array) $data;
-
-        foreach ($data as $key => $value) {
-            if (!array_key_exists($key, $this->map[$type])) {
-                $this->errors[] = sprintf('Unknown key "%s", must be one of "%s"', $key, implode(', ', array_keys($this->map[$type])));
-                continue;
-            }
-
-            $validator = $this->map[$type][$key]['validator'];
-
-            if (is_string($validator)) {
-                if ($validator == 'scalar') {
-                    if (!is_scalar($value)) {
-                        $this->errors[] = sprintf('Value for key "%s" should be a "scalar"', $key);
-                    }
-                } elseif (gettype($value) !== $validator) {
-                    $this->errors[] = sprintf('Value for key "%s" should be a "%s"', $key, $validator);
-                }
-            } elseif ($validator instanceof \Closure) {
-                list($valid, $message) = $validator($value);
-                if (!$valid) {
-                    $this->errors[] = sprintf('Value for key "%s" is not valid: %s', $key, $message);
-                }
-            } else {
-                throw new \RuntimeException('Invalid validator');
-            }
-        }
-    }
-
-    /**
-     * Validate the parsed YAML data
-     *
-     * @param $data array
-     */
-    protected function validate($data)
-    {
-        $this->validateBlock('base', $data);
-
-        if (isset($data['node_types'])) {
-            foreach ($data['node_types'] as $name => $nodeTypeData) {
-                $this->validateBlock('nodeType', $nodeTypeData);
-
-                if (isset($nodeTypeData['children'])) {
-                    foreach ($nodeTypeData['children'] as $name => $childData) {
-                        $this->validateBlock('child', $childData);
-                    }
-                }
-
-                if (isset($nodeTypeData['properties'])) {
-                    foreach ($nodeTypeData['properties'] as $name => $propertyData) {
-                        $this->validateBlock('property', $propertyData);
-                    }
-                }
-            }
-        }
-
-        if (count($this->errors) > 0) {
-            throw new InvalidConfigurationException(sprintf(
-                "Invalid configuration: \n\n - %s",
-                implode("\n - ", $this->errors)
-            ));
-        }
-    }
-
-    /**
-     * Return a validator closure to ensure that an array contains an array of scalar values
-     *
-     * @return \Closure
-     */
-    protected function getScalarArrayValidator()
-    {
-        return function ($v) {
-            if (!is_array($v)) {
-                return array(false, 'Value is not an array');
-            }
-
-            $errors = array();
-            foreach ($v as $key => $vv) {
-                if (!is_scalar($vv)) {
-                    $errors[] = sprintf('The value for key "%s" is not a scalar value', $key);
-                }
-            }
-
-            if (count($errors) > 0) {
-                return array(false, implode("\n", $errors));
-            }
-
-            return array(true, null);
-        };
-    }
-
-    /**
-     * Return a validator closure to ensure that a given value is a valid parent action action
-     *
-     * @return \Closure
-     */
-    protected function getOnParentActionValidator()
-    {
-        return function ($v) {
-            return array(
-                defined('PHPCR\Version\OnParentVersionAction::' . strtoupper($v)),
-                'Unknown on parent version action, should be one of COPY, VERSION, INITIALIZE, COMPUTE, IGNORE or ABORT'
-            );
-        };
-    }
-
-    /**
-     * Return a validator closure to ensure that a given value is a valid PHPCR type
-     *
-     * @return \Closure
-     */
-    protected function getTypeValidator()
-    {
-        return function ($v) {
-            try {
-                PropertyType::valueFromName($v);
-            } catch (\InvalidArgumentException $e) {
-                return array(false, $e->getMessage());
-            }
-
-            return array(true, null);
-        };
-    }
-
-    /**
-     * Return a validator closure to ensure that a given value is a valid query operators value
-     *
-     * @return \Closure
-     */
-    protected function getAvailableQueryOperatorsValidator()
-    {
-        return function ($v) {
-            if (!is_array($v)) {
-                return array(false, 'Value is not an array');
-            }
-
-            return array(true, null);
-        };
-    }
-
-    /**
-     * Deserialize an aggregate node type definition.
-     *
-     * An aggregate definition contains any number of node types and any number
-     * of namespace definitions.
-     *
-     * @param string $yaml YAML string
+     * @param string $yaml
      *
      * @return NodeTypeTemplateInterface
      */
+    public function deserialize($yaml)
+    {
+        $data = Yaml::parse($yaml);
+
+        return $this->createNtTemplate($data);
+    }
+
     public function deserializeAggregate($yaml)
     {
         $data = Yaml::parse($yaml);
         $data = new \ArrayObject($data);
-
-        $this->configure();
-        $this->validate($data);
 
         if (isset($data['namespaces'])) {
             foreach ($data['namespaces'] as $prefix => $url) {
@@ -314,26 +122,19 @@ class YAMLDeserializer
         $ntTemplates = array();
         if (isset($data['node_types'])) {
             foreach ($data['node_types'] as $nodeType) {
-                $ntTemplate = $this->createNtTemplate($nodeType);
+                $ntTemplates[] = $this->createNtTemplate($nodeType);
             }
         }
 
         return $ntTemplates;
     }
 
-    /**
-     * Deserialize a single node type definition
-     *
-     * @param string $yaml
-     *
-     * @return NodeTypeTemplateInterface
-     */
-    public function deserialize($yaml)
+    private function validateNodeType($data)
     {
-        $data = Yaml::parse($yaml);
-        $this->configure();
-        $this->validateBlock('nodeType', $data);
-        return $this->createNtTemplate($data);
+        $schema = Yaml::parse(file_get_contents(__DIR__.'/schema/node-type.yml'));
+        $schema = new MetaYaml($schema);
+        // $schema->validateSchema();
+        $schema->validate($data);
     }
 
     /**
@@ -341,23 +142,27 @@ class YAMLDeserializer
      *
      * @return PHPCR\NodeType\NodeTypeTemplateInterface
      */
-    private function createNtTemplate($nodeTypeData)
+    private function createNtTemplate($v)
     {
+        $this->validateNodeType($v);
+
         $ntTemplate = $this->getNodeTypeManager()->createNodeTypeTemplate();
 
-        foreach (array_keys($nodeTypeData) as $key) {
-            $this->applySetter('nodeType', $key, $ntTemplate, $nodeTypeData);
-
-            if (isset($nodeTypeData['children'])) {
-                foreach ($nodeTypeData['children'] as $childData) {
-                    $ntTemplate->getNodeDefinitionTemplates()->append($this->createChildTemplate($childData));
-                }
+        foreach ($this->nodeTypeMap as $key => $setter) {
+            if (isset($v[$key])) {
+                $setter($ntTemplate, $v[$key]);
             }
+        }
 
-            if (isset($nodeTypeData['properties'])) {
-                foreach ($nodeTypeData['properties'] as $propertyData) {
-                    $ntTemplate->getPropertyDefinitionTemplates()->append($this->createPropertyTemplate($propertyData));
-                }
+        if (isset($v['children'])) {
+            foreach ($v['children'] as $childData) {
+                $ntTemplate->getNodeDefinitionTemplates()->append($this->createChildTemplate($childData));
+            }
+        }
+
+        if (isset($v['properties'])) {
+            foreach ($v['properties'] as $propertyData) {
+                $ntTemplate->getPropertyDefinitionTemplates()->append($this->createPropertyTemplate($propertyData));
             }
         }
 
@@ -369,12 +174,14 @@ class YAMLDeserializer
      *
      * @return PHPCR\NodeType\NodeDefinitionTemplateInterface
      */
-    private function createChildTemplate($childData)
+    private function createChildTemplate($v)
     {
         $ndTemplate = $this->getNodeTypeManager()->createNodeDefinitionTemplate();
 
-        foreach (array_keys($childData) as $key) {
-            $this->applySetter('child', $key, $ndTemplate, $childData);
+        foreach ($this->childDefinitionMap as $key => $setter) {
+            if (isset($v[$key])) {
+                $setter($ndTemplate, $v[$key]);
+            }
         }
 
         return $ndTemplate;
@@ -385,37 +192,27 @@ class YAMLDeserializer
      *
      * @return PHPCR\NodeType\PropertyDefinitionTemplateInterface
      */
-    private function createPropertyTemplate($propertyData)
+    private function createPropertyTemplate($v)
     {
         $pTemplate = $this->getNodeTypeManager()->createPropertyDefinitionTemplate();
 
-        foreach (array_keys($propertyData) as $key) {
-            $this->applySetter('property', $key, $pTemplate, $propertyData);
+        foreach ($this->propertyMap as $key => $setter) {
+            if (isset($v[$key])) {
+                $setter($pTemplate, $v[$key]);
+            }
         }
 
         return $pTemplate;
     }
 
-    /**
-     * Apply the mapped setter only if one has been set.
-     *
-     * @param string $type
-     * @param string $name
-     * @param mixed  $template
-     * @param array  $data
-     */
-    private function applySetter($type, $name, $template, $data)
+    private function getItemDefinitionMap()
     {
-        if (!isset($this->map[$type][$name])) {
-            sprintf('No property "%s" mapped for type "%s"',
-                $name, $type
-            );
-        }
-
-        $setter = $this->map[$type][$name]['setter'];
-        if ($setter) {
-            $value = $data[$name];
-            $setter($template, $value, $data);
-        }
+        return array(
+            'name' => function ($t, $v) { $t->setName($v); },
+            'auto_created' => function ($t, $v) { $t->setAutoCreated((boolean) $v); },
+            'mandatory' => function ($t, $v) { $t->setMandatory((boolean) $v); },
+            'protected' => function ($t, $v) { $t->setProtected((boolean) $v); },
+            'on_parent_version' => function ($t, $v) { $t->setOnParentVersion(OnParentVersionAction::valueFromName($v)); },
+        );
     }
 }

@@ -15,7 +15,8 @@
         }
     },
     "require": {
-        "phpcr/phpcr": "2.1.*"
+        "phpcr/phpcr": "2.1.*",
+        "romaricdrigon/metayaml": "1.0.0"
     },
     "require-dev": {
         "phpspec/prophecy": "1.1.2"

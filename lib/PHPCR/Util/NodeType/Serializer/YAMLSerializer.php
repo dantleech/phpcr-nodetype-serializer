@@ -41,7 +41,7 @@ class YAMLSerializer
             $property = $this->getItemDefinitionArray($pd);
             $property = array_merge($property, array(
                 'required_type' => PropertyType::nameFromValue($pd->getRequiredType()),
-                'value_contraints' => $pd->getValueConstraints(),
+                'value_constraints' => $pd->getValueConstraints(),
                 'default_value' => $pd->getDefaultValues(),
                 'multiple' => (boolean) $pd->isMultiple(),
                 'available_query_operators' => $pd->getAvailableQueryOperators(),

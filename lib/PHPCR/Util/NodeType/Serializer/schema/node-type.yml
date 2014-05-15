@@ -1,0 +1,126 @@
+root:
+    _type: array
+    _children:
+        name: 
+            _type: text
+            _required: true
+        auto_created: 
+            _type: boolean 
+        declared_supertypes:
+            _type: prototype
+            _prototype:
+                _type: text
+        abstract:
+            _type: boolean
+        mixin:
+            _type: boolean
+        orderable_child_nodes:
+            _type: boolean
+        primary_item:
+            _type: text
+        queryable:
+            _type: boolean
+        properties:
+            _type: prototype
+            _prototype:
+                _type: array
+                _children:
+                    name:
+                        _type: text
+                    auto_created:
+                        _type: boolean
+                    mandatory:
+                        _type: boolean
+                    protected:
+                       _type: boolean
+                    on_parent_version:
+                        _type: enum
+                        _values:
+                            - COPY
+                            - VERSION
+                            - INITIALIZE
+                            - COMPUTE
+                            - IGNORE
+                            - ABORT
+                    multiple:
+                        _type: boolean
+                    default_values:
+                        _type: prototype
+                        _prototype:
+                            _type: text
+                    full_text_searchable:
+                        _type: boolean
+                    query_orderable:
+                        _type: boolean
+                    value_constraints:
+                        _type: prototype
+                        _prototype:
+                            _type: text
+                    required_type:
+                        _type: enum
+                        _values:
+                            - UNDEFINED
+                            - STRING
+                            - BINARY
+                            - LONG
+                            - DOUBLE
+                            - DATE
+                            - BOOLEAN
+                            - NAME
+                            - PATH
+                            - REFERENCE
+                            - WEAKREFERENCE
+                            - URI
+                            - DECIMAL
+                    default_values:
+                        _type: prototype
+                        _prototype:
+                            _type: text
+                    available_query_operators:
+                        _type: prototype
+                        _prototype:
+                            _type: enum
+                            _values:
+                                - jcr.join.type.inner
+                                - jcr.join.type.left.outer
+                                - jcr.join.type.right.outer
+                                - jcr.operator.equal.to
+                                - jcr.operator.not.equal.to
+                                - jcr.operator.less.than
+                                - jcr.operator.less.than.or.equal.to
+                                - jcr.operator.greater.than
+                                - jcr.operator.greater.than.or.equal.to
+                                - jcr.operator.like
+                                - jcr.order.ascending
+                                - jcr.order.descending
+        children:
+            _type: prototype
+            _prototype:
+                _type: array
+                _children:
+                    name:
+                        _type: text
+                    auto_created:
+                        _type: boolean
+                    mandatory:
+                        _type: boolean
+                    protected:
+                        _type: boolean
+                    on_parent_version:
+                        _type: enum
+                        _values:
+                            - COPY
+                            - VERSION
+                            - INITIALIZE
+                            - COMPUTE
+                            - IGNORE
+                            - ABORT
+                    default_primary_type:
+                        _type: text
+                        _required: true
+                    same_name_siblings:
+                        _type: boolean
+                    required_primary_types:
+                        _type: prototype
+                        _prototype:
+                            _type: text
